@@ -1,0 +1,179 @@
+{
+	"info": {
+		"_postman_id": "3b742d8a-d5cb-433f-a7ba-2394a83f4e6d",
+		"name": "User Management API",
+		"description": "RESTful API for user management with secure password handling and image uploads. Built with Node.js, Express, MongoDB, bcrypt, and Multer.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22823278"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/create",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"create"
+					]
+				},
+				"description": "Creates a new user with full name, email, and password.\n\n**Validation Rules:**\n- Full name: Only alphabetic characters\n- Email: Valid email format\n- Password: Minimum 8 characters, at least one uppercase, one lowercase, one digit, and one special character\n\n**Success Response (201):**\n```json\n{\n  \"message\": \"User created successfully.\"\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/user/getAll",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"getAll"
+					]
+				},
+				"description": "Retrieves all users from the database.\n\n**Returns:**\n- Full Name\n- Email\n- Password (hashed with bcrypt)\n\n**Success Response (200):**\n```json\n{\n  \"users\": [\n    {\n      \"fullName\": \"John Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"password\": \"$2b$10$...\"\n    }\n  ]\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"fullName\": \"Jonathan Doe\",\n  \"password\": \"NewPassword456!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/edit",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"edit"
+					]
+				},
+				"description": "Updates user's full name and/or password.\n\n**Note:** Email cannot be updated and is required to identify the user.\n\n**Fields:**\n- email (required): User's email to identify them\n- fullName (optional): New full name\n- password (optional): New password (must meet strength requirements)\n\n**Success Response (200):**\n```json\n{\n  \"message\": \"User updated successfully.\"\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"john.doe@example.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/delete",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"delete"
+					]
+				},
+				"description": "Deletes a user from the database by their email address.\n\n**Required:**\n- email: The email address of the user to delete\n\n**Success Response (200):**\n```json\n{\n  \"message\": \"User deleted successfully.\"\n}\n```\n\n**Error Response (404):**\n```json\n{\n  \"error\": \"User not found.\"\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Image",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "john.doe@example.com",
+							"description": "Email address of the user",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"description": "Image file (JPEG, PNG, or GIF only)",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/uploadImage",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"uploadImage"
+					]
+				},
+				"description": "Uploads an image file for a user account.\n\n**Requirements:**\n- Email: Required to identify the user\n- Image: File input (JPEG, PNG, or GIF only)\n- Maximum file size: 5MB\n- One image per user\n\n**IMPORTANT:** After importing this collection, click on the 'image' field and select a local image file from your computer.\n\n**Success Response (201):**\n```json\n{\n  \"message\": \"Image uploaded successfully.\",\n  \"filePath\": \"/images/john.doe@example.com-1234567890.jpg\"\n}\n```\n\n**Error Responses:**\n- 400: Invalid file format or image already exists\n- 404: User not found"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "default"
+		}
+	]
+}
