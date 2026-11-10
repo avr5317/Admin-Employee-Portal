@@ -46,7 +46,8 @@ This assignment enhances a job portal application by implementing:
 #### 2. Employees Page
 - [x] Admin-only page
 - [x] Displays all users in a table
-- [x] Shows: name, email, type
+- [x] Shows: name, email, role
+- [x] Search box, sticky table header, role chips and an empty state
 - [x] Route: `/admin/employees`
 - **Location:** `pages/AdminEmployees.jsx`
 
@@ -72,6 +73,7 @@ This assignment enhances a job portal application by implementing:
 - [x] Fetches jobs from GET `/api/jobs`
 - [x] Displays jobs in card format
 - [x] Shows: job title, company, description, salary
+- [x] Search by title or company (client side), loading skeletons and an empty state
 - **Location:** `pages/JobListings.jsx`
 
 ---
@@ -102,13 +104,13 @@ This assignment enhances a job portal application by implementing:
 
 ### ⭐ Optional Features Implemented
 
-#### 1. Loading Spinners
+#### 1. Loading States
 - [x] Page-load spinner while a lazy-loaded page downloads (`App.jsx`)
 - [x] Spinner while the saved login state is loading (`components/ProtectedRoute.jsx`)
-- [x] Spinner while data loads on the Jobs, Companies and Employees pages
-- [x] Spinner inside the Create Job button while the job is being saved
-- Not every API call has a spinner (for example, the login button does not show one)
-- **Location:** `App.jsx`, `ProtectedRoute.jsx`, `JobListings.jsx`, `CompanyShowcase.jsx`, `AdminEmployees.jsx`, `AddJob.jsx`
+- [x] Skeleton placeholders while data loads on the Home stats, Jobs, Companies and Employees pages
+- [x] Spinners inside the Login, Register and Create Job buttons while they submit
+- Not every request has a loading indicator
+- **Location:** `App.jsx`, `ProtectedRoute.jsx`, `Home.jsx`, `JobListings.jsx`, `CompanyShowcase.jsx`, `AdminEmployees.jsx`, `AddJob.jsx`, `Login.jsx`, `Register.jsx`
 
 #### 2. Pagination
 - [x] Job listings paginated (6 per page)
@@ -171,10 +173,19 @@ Admin-Employee-Portal/
 │           ├── src/
 │           │   ├── api/
 │           │   │   └── client.js           # Shared axios client (auth header, 401 handling)
+│           │   ├── hooks/
+│           │   │   └── useLoadData.js      # Runs a thunk on mount and reports loading/error
+│           │   ├── utils/
+│           │   │   └── format.js           # Salary formatting, initials, avatar colors
 │           │   ├── components/
 │           │   │   ├── ErrorBoundary.jsx   # Friendly error screen with Reload button
+│           │   │   ├── ColorModeProvider.jsx # Light/dark theme provider
+│           │   │   ├── Footer.jsx
 │           │   │   ├── Login.jsx           # Login with role redirect
-│           │   │   ├── Navbar.jsx          # Role-based navigation
+│           │   │   ├── Navbar.jsx          # Role-based navigation, theme toggle, drawer
+│           │   │   ├── Page.jsx            # Page heading wrapper
+│           │   │   ├── PasswordField.jsx   # Password input with show/hide
+│           │   │   ├── Toast.jsx           # Snackbar messages
 │           │   │   └── ProtectedRoute.jsx  # Auth & role guards
 │           │   ├── data/
 │           │   │   └── jobPosts.js
@@ -185,7 +196,9 @@ Admin-Employee-Portal/
 │           │   │   ├── CompanyShowcase.jsx
 │           │   │   ├── Contact.jsx
 │           │   │   ├── Home.jsx
-│           │   │   └── JobListings.jsx     # Job listings with pagination
+│           │   │   ├── JobListings.jsx     # Job listings with search, pagination, delete
+│           │   │   ├── NotFound.jsx        # 404 page
+│           │   │   └── Register.jsx        # Self-service sign-up
 │           │   ├── store/
 │           │   │   ├── slices/
 │           │   │   │   ├── authSlice.js
@@ -193,7 +206,9 @@ Admin-Employee-Portal/
 │           │   │   │   └── usersSlice.js
 │           │   │   └── index.js            # Redux store config
 │           │   ├── App.jsx
-│           │   ├── App.css
+│           │   ├── colorMode.js            # Theme mode context and helpers
+│           │   ├── navigation.js           # Role-aware links and paths
+│           │   ├── theme.js                # Material UI theme (light and dark)
 │           │   ├── main.jsx
 │           │   └── index.css
 │           ├── .env.example            # Optional VITE_API_URL
@@ -259,6 +274,8 @@ Never commit `.env` or a real secret. `.env.example` contains placeholders only.
 VITE_API_URL=http://localhost:3000
 ```
 If `VITE_API_URL` is not set, the app uses `http://localhost:3000`.
+
+Optionally set `VITE_CONTACT_EMAIL` to show a "Send by email" button on the Contact page. The form itself never sends anything.
 
 ---
 
@@ -352,7 +369,7 @@ npm run seed
 It creates:
 - 1 admin and 1 employee
 - 12 jobs from fictional companies
-- 6 fictional partner companies for the Companies page (users with a generated placeholder image saved in `uploads/images`)
+- 6 fictional partner company accounts (users with a generated placeholder image saved in `uploads/images`). The Companies page no longer reads these; it builds its cards from the jobs, so the companies shown come from the 12 seeded jobs.
 
 | Demo login | Email | Password |
 |------------|-------|----------|
@@ -375,10 +392,11 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 ### User Endpoints
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| POST | `/user/create` | Create new user | Public |
+| POST | `/user/register` | Self-service sign-up. Always creates an `employee` and ignores any `type` in the body | Public |
+| POST | `/user/create` | Create new user. Creating an `admin` needs an admin token, except for the very first admin when none exists yet | Public (employee) / Admin token (admin) |
 | POST | `/user/login` | User login. Returns `{ message, user, token }` | Public |
 | GET | `/user/users` | Get all users (no passwords) | Admin only |
-| GET | `/user/getAll` | Get all users (no passwords; used by Company Showcase) | Logged-in |
+| GET | `/user/getAll` | Get all users (no passwords) | Logged-in |
 | PUT | `/user/edit` | Update user | Admin only |
 | DELETE | `/user/delete` | Delete user | Admin only |
 | POST | `/user/uploadImage` | Upload user image | Logged-in |
@@ -390,22 +408,6 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 | GET | `/api/jobs` | Get all jobs | Logged-in |
 | DELETE | `/api/delete/job/:id` | Delete job | Admin only |
 
---------|----------|-------------|--------|
-| POST | `/user/create` | Create new user | Public |
-| POST | `/user/login` | User login | Public |
-| GET | `/user/users` | Get all users (no passwords) | Protected |
-| GET | `/user/getAll` | Get all users | Protected |
-| PUT | `/user/edit` | Update user | Protected |
-| DELETE | `/user/delete` | Delete user | Protected |
-| POST | `/user/uploadImage` | Upload user image | Protected |
-
-### Job Endpoints
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/create/job` | Create new job | Admin only |
-| GET | `/api/jobs` | Get all jobs | Protected |
-| DELETE | `/api/delete/job/:id` | Delete job | Admin only |
-
 ---
 
 ## 🎨 Features Walkthrough
@@ -415,15 +417,15 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 2. **View Employees** - See all users in a table
 3. **Add Job** - Navigate to `/add-job`, fill form, submit
 4. **View Jobs** - Navigate to `/admin/jobs`, see all listings
-5. **Delete Jobs** - Each job card shows a **Delete** button (instead of Apply) with a confirmation prompt; if the delete fails, an error message is shown
+5. **Delete Jobs** - Each job card shows a **Delete** button (instead of Apply) with a confirmation dialog; if the delete fails, an error message is shown
 6. **Access Other Pages** - Companies, About, Contact
 7. **Logout** - Return to login page
 
 ### Employee Flow
 1. **Login** as employee → Redirected to `/` (Home)
 2. **Browse Jobs** - Navigate to `/jobs`, see listings with pagination
-3. **Apply to Jobs** - Click "Apply" button (shows an alert only)
-4. **View Companies** - See partner companies
+3. **Apply to Jobs** - Click "Apply" button (shows a message only; nothing is saved)
+4. **View Companies** - See the companies that have posted jobs, with their open roles
 5. **Navigation** - Access About, Contact pages
 6. **Logout** - Return to login page
 
@@ -450,10 +452,15 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 - **Shared axios client** (`src/api/client.js`): one instance for all API calls. The base URL comes from `VITE_API_URL` (default `http://localhost:3000`). A request interceptor adds `Authorization: Bearer <token>` from `localStorage`.
 - **Auto-logout on 401:** if a request that sent a token gets a 401, the client clears the saved login and calls a logout handler registered in `main.jsx` (the store is not imported into the client). A 401 from the login call itself (wrong password) does not log you out.
 - **Login restored on refresh:** the saved user and token are read from `localStorage` when the app starts (wrapped in try/catch so bad data cannot crash it).
-- **Admin can delete jobs:** Delete button with a confirmation prompt on the job listings; if deleting the last card on the last page empties it, the list moves to the previous page.
+- **Admin can delete jobs:** Delete button with a confirmation dialog on the job listings; if deleting the last card on the last page empties it, the list moves to the previous page.
 - **Lazy-loaded pages:** Home, About, Companies, Contact, Jobs, Employees and Add Job load with `React.lazy`; a centered spinner shows while a page loads (`Suspense`). Navbar and Login load immediately.
 - **Error boundary:** `components/ErrorBoundary.jsx` shows a friendly message with a **Reload** button if a page crashes while rendering or fails to load; it resets when you navigate to another route.
-- **Company Showcase through Redux:** the page loads its data with the `fetchCompanies` thunk instead of calling the API directly.
+- **Companies page built from jobs:** the cards are grouped by company name from the jobs in Redux, with an initials avatar, the number of open roles, up to three job titles and a *View jobs* button that opens the Jobs page filtered to that company. A company with no jobs does not appear.
+- **Theme:** a custom Material UI theme with a light and a dark mode. The toggle is in the navbar, the choice is saved in `localStorage`, and the first visit follows the system setting. Colors were chosen to meet WCAG AA contrast ratios.
+- **Layout shell:** sticky navbar that collapses into a menu drawer on narrow screens, the signed-in user's name and role in a chip with a Logout menu, a footer, a skip-to-content link, and a 404 page for unknown URLs.
+- **Home page:** a hero with a button that depends on the role, and stats built from real data (open jobs, companies hiring, and for admins the number of users). A logged-out visitor is redirected to Login before reaching Home, so the logged-out version is not visible in the current routes.
+- **About page:** what the project is, what admins and employees can do, the tech stack, security and architecture notes, known limitations and an FAQ.
+- **Contact page:** a validated form with a character counter and a link to the GitHub repo and its issues page. **It is a demo form and sends nothing.** If `VITE_CONTACT_EMAIL` is set, a "Send by email" button opens a `mailto:` link.
 
 ---
 
@@ -479,9 +486,8 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 
 ### Users Slice
 ```javascript
-// Manages: list (users array), loading, error,
-//          companies, companiesLoading, companiesError
-// Actions: fetchUsers (admin Employees page), fetchCompanies (Company Showcase page)
+// Manages: list (users array), loading, error
+// Actions: fetchUsers (admin Employees page and the Home page user count)
 // File: store/slices/usersSlice.js
 ```
 
@@ -489,7 +495,7 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 
 ## 📱 Responsive Design
 
-Responsive layout has not been verified yet and is planned as a later step. The pages use Material UI components, but this README makes no claims about mobile, tablet or desktop behavior.
+The layouts use Material UI breakpoints (the job and company grids, a stacked Contact layout, and a navbar that becomes a menu drawer below 1200px). Responsive behavior is not covered by automated tests, and this README makes no claim that it has been tested on real devices.
 
 ---
 
@@ -538,7 +544,8 @@ Responsive layout has not been verified yet and is planned as a later step. The 
 - No refresh tokens: when the 1-day token expires, the user has to log in again
 - No rate limiting on any endpoint, including login
 - `POST /user/uploadImage` lets any logged-in user set an image for any email address
-- Apply button only shows an alert (not connected to an actual application system)
+- Apply button only shows a message (not connected to an actual application system)
+- The Contact form is a demo and sends nothing
 - No automated tests
 - The error boundary catches render and lazy-load errors only, not errors in event handlers or async code
 - CORS allows only `http://localhost:5173` (hard-coded in `server.js`)
