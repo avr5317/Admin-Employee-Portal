@@ -75,3 +75,21 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+/* Dark mode: keep MUI text field text, labels and helper text readable */
+@media (prefers-color-scheme: dark) {
+  .MuiTextField-root .MuiInputBase-input {
+    color: rgba(255, 255, 255, 0.87);
+  }
+  .MuiTextField-root .MuiInputLabel-root:not(.Mui-error) {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .MuiTextField-root .MuiInputLabel-root.Mui-focused:not(.Mui-error) {
+    color: #90caf9;
+  }
+  .MuiTextField-root .MuiFormHelperText-root:not(.Mui-error) {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+}

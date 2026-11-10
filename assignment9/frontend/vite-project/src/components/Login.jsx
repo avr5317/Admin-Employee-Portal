@@ -1,8 +1,8 @@
 // src/components/Login.jsx
 import { useState, useEffect } from 'react';
-import { TextField, Button, Container, Typography, Box, Alert } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Alert, Link as MuiLink } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { loginThunk } from '../store/slices/authSlice';
 
 function Login() {
@@ -11,6 +11,7 @@ function Login() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // From Redux auth slice
   const { loading, error, user } = useSelector((state) => state.auth);
@@ -48,6 +49,12 @@ function Login() {
         <Typography component="h1" variant="h4" gutterBottom>
           Job Portal Login
         </Typography>
+
+        {location.state?.registered && !error && (
+          <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+            Account created! Please log in.
+          </Alert>
+        )}
 
         {error && (
           <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
@@ -87,10 +94,11 @@ function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </Button>
 
-          <Typography variant="body2" color="text.secondary">
-            Demo: First create a user at{' '}
-            <code>POST http://localhost:3000/user/create</code> (with type
-            <code> "admin"</code> or <code>"employee"</code> in Assignment 8 backend).
+          <Typography variant="body2">
+            New here?{' '}
+            <MuiLink component={RouterLink} to="/register">
+              Create an account
+            </MuiLink>
           </Typography>
         </Box>
       </Box>

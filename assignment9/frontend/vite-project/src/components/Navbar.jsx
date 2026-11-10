@@ -12,7 +12,7 @@ function Navbar({ userName, onLogout }) {
         <Typography 
           variant="h6" 
           component={Link} 
-          to={user?.type === 'admin' ? '/admin/employees' : '/'} 
+          to={user ? (user.type === 'admin' ? '/admin/employees' : '/') : '/login'} 
           sx={{ 
             flexGrow: 0,
             textDecoration: 'none', 
@@ -23,9 +23,22 @@ function Navbar({ userName, onLogout }) {
           Job Portal
         </Typography>
 
-        {/* Navigation Links */}
+        {/* Logged out: only Login and Register */}
+        {!user && (
+          <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
+            <Button color="inherit" component={Link} to="/login">
+              LOGIN
+            </Button>
+            <Button color="inherit" component={Link} to="/register">
+              REGISTER
+            </Button>
+          </Box>
+        )}
+
+        {/* Navigation Links (logged in) */}
+        {user && (
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-          {user?.type === 'admin' ? (
+          {user.type === 'admin' ? (
             // Admin Navigation
             <>
               <Button color="inherit" component={Link} to="/admin/employees">
@@ -68,8 +81,10 @@ function Navbar({ userName, onLogout }) {
             </>
           )}
         </Box>
+        )}
 
-        {/* User info and Logout */}
+        {/* User info and Logout (logged in) */}
+        {user && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant="body1">
             {userName}
@@ -83,6 +98,7 @@ function Navbar({ userName, onLogout }) {
             LOGOUT
           </Button>
         </Box>
+        )}
       </Toolbar>
     </AppBar>
   );

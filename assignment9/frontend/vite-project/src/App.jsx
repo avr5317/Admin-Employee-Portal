@@ -14,6 +14,7 @@ const Contact = lazy(() => import('./pages/Contact'));
 const JobListings = lazy(() => import('./pages/JobListings'));
 const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
 const AddJob = lazy(() => import('./pages/AddJob'));
+const Register = lazy(() => import('./pages/Register'));
 
 import { RequireAuth, RequireRole } from './components/ProtectedRoute';
 import { logout } from './store/slices/authSlice';
@@ -55,6 +56,7 @@ function App() {
       <Routes>
         {/* Public route */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* All protected routes go inside RequireAuth */}
         <Route element={<RequireAuth />}>
