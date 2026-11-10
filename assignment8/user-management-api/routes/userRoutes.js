@@ -2,13 +2,14 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 // User routes
 router.post('/create', userController.createUser);
-router.get('/getAll', userController.getAllUsers);
-router.put('/edit', userController.updateUser);
-router.delete('/delete', userController.deleteUser);
-router.get('/users', userController.getAllUsers); 
+router.get('/getAll', requireAuth, userController.getAllUsers);
+router.put('/edit', requireAdmin, userController.updateUser);
+router.delete('/delete', requireAdmin, userController.deleteUser);
+router.get('/users', requireAdmin, userController.getAllUsers); 
 
 router.post('/login', userController.loginUser);
 
@@ -16,7 +17,7 @@ router.post('/login', userController.loginUser);
 
 
 // Image upload route with multer middleware
-router.post('/uploadImage', upload.single('image'), (req, res, next) => {
+router.post('/uploadImage', requireAuth, upload.single('image'), (req, res, next) => {
     // Handle multer errors
     if (req.fileValidationError) {
         return res.status(400).json({ 

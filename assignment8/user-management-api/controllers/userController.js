@@ -1,6 +1,7 @@
 // controllers/userController.js
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 
@@ -280,6 +281,13 @@ exports.loginUser = async (req, res) => {
             });
         }
 
+        // Sign JWT (1 day) containing id, email and type
+        const token = jwt.sign(
+            { id: user._id, email: user.email, type: user.type },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
         // Success – send back basic user info including type for role-based routing
         return res.status(200).json({
             message: 'Login successful',
@@ -288,7 +296,8 @@ exports.loginUser = async (req, res) => {
                 email: user.email,
                 type: user.type,
                 imagePath: user.imagePath || null
-            }
+            },
+            token
         });
     } catch (error) {
         console.error('Login error:', error);
