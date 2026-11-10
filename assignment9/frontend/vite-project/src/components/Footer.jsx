@@ -1,9 +1,7 @@
 import { Box, Container, Link as MuiLink, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { getAboutPath, getContactPath, getHomePath, getJobsPath } from '../navigation';
-
-export const REPO_URL = 'https://github.com/avr5317/Admin-Employee-Portal';
+import { REPO_URL, getAboutPath, getContactPath, getHomePath, getJobsPath } from '../navigation';
 
 function Footer({ user }) {
   // Logged-out visitors cannot open the app pages (they redirect to login),

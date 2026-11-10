@@ -1,5 +1,7 @@
 // Role-aware navigation shared by the Navbar and Footer.
 // Paths match the existing routes in App.jsx.
+export const REPO_URL = 'https://github.com/avr5317/Admin-Employee-Portal';
+
 export const isAdmin = (user) => user?.type === 'admin';
 
 export const getRoleLabel = (user) => (isAdmin(user) ? 'Admin' : 'Employee');
