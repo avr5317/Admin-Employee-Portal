@@ -15,15 +15,20 @@ import {
   Stack,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchJobs } from '../store/slices/jobsSlice';
+import { fetchJobs, deleteJob } from '../store/slices/jobsSlice';
 
 function JobListings() {
   const dispatch = useDispatch();
-  const { items: jobs, loading, error } = useSelector((state) => state.jobs);
+  const { items: jobs, loading, error, deleteError } = useSelector((state) => state.jobs);
+  const { user } = useSelector((state) => state.auth);
+  const isAdmin = user?.type === 'admin';
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 6; 
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+  // If deleting the last card on the last page empties it, fall back to the previous page
+  const page = Math.max(1, Math.min(currentPage, totalPages));
 
   useEffect(() => {
     dispatch(fetchJobs());
@@ -35,13 +40,16 @@ function JobListings() {
     );
   };
 
-  
-  const indexOfLastJob = currentPage * jobsPerPage;
+  const handleDelete = (job) => {
+    if (window.confirm(`Delete "${job.jobTitle}" at ${job.companyName}? This cannot be undone.`)) {
+      dispatch(deleteJob(job._id));
+    }
+  };
+
+  const indexOfLastJob = page * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-  const totalPages = Math.ceil(jobs.length / jobsPerPage);
 
- 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -68,6 +76,12 @@ function JobListings() {
       <Typography variant="h4" gutterBottom>
         Available Jobs
       </Typography>
+
+      {deleteError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {deleteError}
+        </Alert>
+      )}
 
       {jobs.length > 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -103,14 +117,26 @@ function JobListings() {
                 </Typography>
               </CardContent>
               <CardActions sx={{ p: 2, pt: 0 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => handleApply(job)}
-                  fullWidth
-                >
-                  Apply
-                </Button>
+                {isAdmin ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDelete(job)}
+                    fullWidth
+                  >
+                    Delete
+                  </Button>
+                ) : (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleApply(job)}
+                    fullWidth
+                  >
+                    Apply
+                  </Button>
+                )}
               </CardActions>
             </Card>
           </Grid>
@@ -135,7 +161,7 @@ function JobListings() {
         <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
           <Pagination
             count={totalPages}
-            page={currentPage}
+            page={page}
             onChange={handlePageChange}
             color="primary"
             size="large"
