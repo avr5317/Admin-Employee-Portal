@@ -1,10 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:3000';
+import client from '../../api/client';
 
 export const fetchJobs = createAsyncThunk('jobs/fetchJobs', async () => {
-  const res = await axios.get(`${API_BASE_URL}/api/jobs`);
+  const res = await client.get('/api/jobs');
   return res.data.jobs;
 });
 
@@ -12,7 +10,7 @@ export const createJob = createAsyncThunk(
   'jobs/createJob',
   async (jobData, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/create/job`, jobData);
+      const res = await client.post('/api/create/job', jobData);
       return res.data.job;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error || 'Failed to create job');

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -9,46 +9,22 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:3000';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCompanies } from '../store/slices/usersSlice';
+import { API_BASE_URL } from '../api/client';
 
 function CompanyShowcase() {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    companies,
+    companiesLoading: loading,
+    companiesError,
+  } = useSelector((state) => state.users);
+  const error = Boolean(companiesError);
 
   useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        setLoading(true);
-        setError(false);
-
-       
-        const response = await axios.get(`${API_BASE_URL}/user/getAll`);
-        const users = response.data.users || [];
-
-       
-        const mappedCompanies = users
-          .filter((user) => user.imagePath) 
-          .map((user) => ({
-            id: user.email,
-            name: user.fullName,
-            description: user.email,
-            imageUrl: `${API_BASE_URL}${user.imagePath}`, 
-          }));
-
-        setCompanies(mappedCompanies);
-      } catch (err) {
-        setError(true);
-        console.error('Error fetching companies:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompanies();
-  }, []);
+    dispatch(fetchCompanies());
+  }, [dispatch]);
 
   if (loading) {
     return (
