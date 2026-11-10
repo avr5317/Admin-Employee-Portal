@@ -157,6 +157,8 @@ Admin-Employee-Portal/
 │       ├── routes/
 │       │   ├── jobRoutes.js        # Job API routes
 │       │   └── userRoutes.js       # User API routes
+│       ├── scripts/
+│       │   └── seed.js             # Local demo data (npm run seed)
 │       ├── .env.example            # Environment variable template
 │       ├── .gitignore
 │       ├── package.json
@@ -338,6 +340,28 @@ curl -X POST http://localhost:3000/user/create \
 - At least one lowercase letter
 - At least one digit
 - At least one special character (@$!%*?&)
+
+---
+
+## 🌱 Demo Data (local development only)
+
+To fill an empty local database with sample data, run from `assignment8/user-management-api/`:
+```bash
+npm run seed
+```
+It creates:
+- 1 admin and 1 employee
+- 12 jobs from fictional companies
+- 6 fictional partner companies for the Companies page (users with a generated placeholder image saved in `uploads/images`)
+
+| Demo login | Email | Password |
+|------------|-------|----------|
+| Admin | `admin@demo.test` | `Passw0rd!` |
+| Employee | `employee@demo.test` | `Passw0rd!` |
+
+- **For local development only.** The demo passwords are public. Never use this data, or these logins, on a shared or deployed system.
+- The script refuses to run unless `MONGODB_URI` points at `localhost` or `127.0.0.1`.
+- It is safe to run more than once: users are matched by email and jobs by company name + job title, so no duplicates are created. Running it again resets the two demo passwords to the values above.
 
 ---
 
