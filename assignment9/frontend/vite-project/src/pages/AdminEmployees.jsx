@@ -1,72 +1,135 @@
-
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
 import {
-  Container,
-  Typography,
+  Alert,
+  Button,
+  Chip,
+  InputAdornment,
+  Paper,
+  Skeleton,
   Table,
+  TableBody,
+  TableCell,
+  TableContainer,
   TableHead,
   TableRow,
-  TableCell,
-  TableBody,
-  CircularProgress,
-  Alert,
-  Paper,
-  Box,
+  TextField,
+  Typography,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import { useSelector } from 'react-redux';
 import { fetchUsers } from '../store/slices/usersSlice';
+import useLoadData from '../hooks/useLoadData';
+import Page from '../components/Page';
 
 function AdminEmployees() {
-  const dispatch = useDispatch();
-  const { list: users, loading, error } = useSelector((state) => state.users);
+  const { list: users } = useSelector((state) => state.users);
+  const { status, reload } = useLoadData(fetchUsers);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? users.filter(
+        (u) =>
+          u.fullName.toLowerCase().includes(query) ||
+          u.email.toLowerCase().includes(query) ||
+          u.type.toLowerCase().includes(query)
+      )
+    : users;
 
-  if (loading) {
-    return (
-      <Box sx={{ mt: 10, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
-  }
+  const subtitle =
+    status === 'loading' ? 'Loading users…' : `${users.length} ${users.length === 1 ? 'user' : 'users'} in total`;
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Employees
-      </Typography>
+    <Page title="Employees" subtitle={subtitle}>
+      {status === 'error' && (
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={reload}>
+              Try again
+            </Button>
+          }
+        >
+          Users could not be loaded. Check that the server is running and try again.
+        </Alert>
+      )}
 
-      <Paper elevation={3}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Name</strong></TableCell>
-              <TableCell><strong>Email</strong></TableCell>
-              <TableCell><strong>Type</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.email}>
-                <TableCell>{user.fullName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.type}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
-    </Container>
+      {status !== 'error' && (
+        <>
+          <TextField
+            label="Search by name, email or role"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            fullWidth
+            sx={{ mb: 3, maxWidth: { sm: 440 } }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon aria-hidden="true" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+            <TableContainer sx={{ maxHeight: 560 }}>
+              <Table stickyHeader sx={{ minWidth: 520 }} aria-label="Users">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Role</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {status === 'loading' &&
+                    [0, 1, 2, 3, 4].map((n) => (
+                      <TableRow key={n}>
+                        <TableCell><Skeleton variant="text" width="60%" /></TableCell>
+                        <TableCell><Skeleton variant="text" width="80%" /></TableCell>
+                        <TableCell><Skeleton variant="rounded" width={72} height={24} /></TableCell>
+                      </TableRow>
+                    ))}
+
+                  {status === 'ready' &&
+                    filtered.map((user) => (
+                      <TableRow key={user.email} hover>
+                        <TableCell>{user.fullName}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={user.type === 'admin' ? 'Admin' : 'Employee'}
+                            color={user.type === 'admin' ? 'primary' : 'default'}
+                            variant={user.type === 'admin' ? 'filled' : 'outlined'}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {status === 'ready' && filtered.length === 0 && (
+              <div style={{ padding: 40, textAlign: 'center' }}>
+                <PeopleOutlineIcon color="disabled" sx={{ fontSize: 48 }} aria-hidden="true" />
+                <Typography variant="h6" component="p" sx={{ mt: 1 }}>
+                  {users.length === 0 ? 'No users yet' : 'No users match your search'}
+                </Typography>
+                {users.length > 0 && (
+                  <Button variant="outlined" onClick={() => setSearch('')} sx={{ mt: 2 }}>
+                    Clear search
+                  </Button>
+                )}
+              </div>
+            )}
+          </Paper>
+        </>
+      )}
+    </Page>
   );
 }
 

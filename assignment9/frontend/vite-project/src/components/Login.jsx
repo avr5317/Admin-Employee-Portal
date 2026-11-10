@@ -1,17 +1,32 @@
 // src/components/Login.jsx
 import { useState, useEffect } from 'react';
-import { TextField, Button, Container, Typography, Box, Alert, Link as MuiLink } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Container,
+  Typography,
+  Box,
+  Alert,
+  CircularProgress,
+  Link as MuiLink,
+  Paper,
+} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { loginThunk } from '../store/slices/authSlice';
+import PasswordField from './PasswordField';
+import Toast from './Toast';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [touched, setTouched] = useState({});
+  const [toastOpen, setToastOpen] = useState(Boolean(useLocation().state?.registered));
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // From Redux auth slice
   const { loading, error, user } = useSelector((state) => state.auth);
@@ -29,69 +44,80 @@ function Login() {
     }
   }, [user, navigate]);
 
+  const errors = {
+    email: !email.trim()
+      ? 'Please enter your email.'
+      : EMAIL_REGEX.test(email.trim())
+        ? ''
+        : 'Please enter a valid email address.',
+    password: password ? '' : 'Please enter your password.',
+  };
+  const showError = (f) => Boolean(touched[f] && errors[f]);
+  const markTouched = (f) => () => setTouched((prev) => ({ ...prev, [f]: true }));
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (errors.email || errors.password) return;
 
     // Trigger Redux async thunk for login
-    dispatch(loginThunk({ email, password }));
+    dispatch(loginThunk({ email: email.trim(), password }));
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          mt: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography component="h1" variant="h4" gutterBottom>
-          Job Portal Login
+    <Container maxWidth="xs" sx={{ py: { xs: 4, md: 8 } }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 4 } }}>
+        <Typography component="h1" variant="h3">
+          Log in
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+          Welcome back to Job Portal.
         </Typography>
 
-        {location.state?.registered && !error && (
-          <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
-            Account created! Please log in.
-          </Alert>
-        )}
-
         {error && (
-          <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 1 }}>
             {error}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             margin="normal"
             required
             fullWidth
             label="Email"
             type="email"
+            autoComplete="email"
             autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={markTouched('email')}
+            error={showError('email')}
+            helperText={showError('email') ? errors.email : ' '}
           />
 
-          <TextField
+          <PasswordField
             margin="normal"
             required
             fullWidth
             label="Password"
-            type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onBlur={markTouched('password')}
+            error={showError('password')}
+            helperText={showError('password') ? errors.password : ' '}
           />
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            size="large"
+            sx={{ mt: 2, mb: 2 }}
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? <CircularProgress size={24} aria-label="Logging in" /> : 'Log in'}
           </Button>
 
           <Typography variant="body2">
@@ -101,7 +127,13 @@ function Login() {
             </MuiLink>
           </Typography>
         </Box>
-      </Box>
+      </Paper>
+
+      <Toast
+        open={toastOpen}
+        message="Account created! Please log in."
+        onClose={() => setToastOpen(false)}
+      />
     </Container>
   );
 }

@@ -8,10 +8,12 @@ import {
   Alert,
   CircularProgress,
   Link as MuiLink,
+  Paper,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { registerThunk, resetRegister } from '../store/slices/authSlice';
+import PasswordField from '../components/PasswordField';
 
 // Same rules as the backend (controllers/userController.js and models/User.js)
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -26,7 +28,7 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [touched, setTouched] = useState(false);
+  const [touched, setTouched] = useState({});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,10 +53,12 @@ function Register() {
     confirmPassword: confirmPassword === password ? '' : 'Passwords do not match.',
   };
   const hasErrors = Object.values(errors).some(Boolean);
+  const showError = (f) => Boolean(touched[f] && errors[f]);
+  const markTouched = (f) => () => setTouched((prev) => ({ ...prev, [f]: true }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setTouched(true);
+    setTouched({ fullName: true, email: true, password: true, confirmPassword: true });
     if (hasErrors) return;
 
     const result = await dispatch(
@@ -66,29 +70,34 @@ function Register() {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h4" gutterBottom>
-          Create an Account
+    <Container maxWidth="sm" sx={{ py: { xs: 4, md: 8 } }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 4 } }}>
+        <Typography component="h1" variant="h3">
+          Create an account
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+          New accounts are employee accounts.
         </Typography>
 
         {registerError && (
-          <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 1 }}>
             {registerError}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             margin="normal"
             required
             fullWidth
             label="Full name"
+            autoComplete="name"
             autoFocus
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            error={touched && Boolean(errors.fullName)}
-            helperText={touched && errors.fullName ? errors.fullName : 'Letters and spaces only.'}
+            onBlur={markTouched('fullName')}
+            error={showError('fullName')}
+            helperText={showError('fullName') ? errors.fullName : 'Letters and spaces only.'}
           />
 
           <TextField
@@ -97,44 +106,49 @@ function Register() {
             fullWidth
             label="Email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            error={touched && Boolean(errors.email)}
-            helperText={touched && errors.email ? errors.email : ' '}
+            onBlur={markTouched('email')}
+            error={showError('email')}
+            helperText={showError('email') ? errors.email : ' '}
           />
 
-          <TextField
+          <PasswordField
             margin="normal"
             required
             fullWidth
             label="Password"
-            type="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            error={touched && Boolean(errors.password)}
+            onBlur={markTouched('password')}
+            error={showError('password')}
             helperText={PASSWORD_HINT}
           />
 
-          <TextField
+          <PasswordField
             margin="normal"
             required
             fullWidth
             label="Confirm password"
-            type="password"
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            error={touched && Boolean(errors.confirmPassword)}
-            helperText={touched && errors.confirmPassword ? errors.confirmPassword : ' '}
+            onBlur={markTouched('confirmPassword')}
+            error={showError('confirmPassword')}
+            helperText={showError('confirmPassword') ? errors.confirmPassword : ' '}
           />
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            size="large"
+            sx={{ mt: 2, mb: 2 }}
             disabled={registerLoading}
           >
-            {registerLoading ? <CircularProgress size={24} /> : 'Register'}
+            {registerLoading ? <CircularProgress size={24} aria-label="Creating account" /> : 'Register'}
           </Button>
 
           <Typography variant="body2">
@@ -144,7 +158,7 @@ function Register() {
             </MuiLink>
           </Typography>
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 }
