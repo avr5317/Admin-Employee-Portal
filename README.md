@@ -1,4 +1,4 @@
-# Assignment 10: Admin & Employee Portal with Redux
+# Admin & Employee Job Portal
 
 A full-stack job portal application with role-based authentication and Redux state management. Admins can manage jobs and view users, while employees can browse available positions.
 
@@ -23,13 +23,13 @@ This assignment enhances a job portal application by implementing:
 - [x] Added `type` field (required)
 - [x] Only accepts "admin" or "employee"
 - [x] Rejects invalid values
-- **Location:** `controllers/userController.js` (lines 28-33)
+- **Location:** `controllers/userController.js`
 
 #### 2. GET /users Endpoint
 - [x] Fetches all user details
 - [x] Excludes passwords from response
 - [x] Returns name, email, and type
-- **Location:** `controllers/userController.js` (lines 65-79)
+- **Location:** `controllers/userController.js`
 
 ---
 
@@ -40,7 +40,7 @@ This assignment enhances a job portal application by implementing:
 - [x] Login redirects based on user type
 - [x] Admin → `/admin/employees` after login
 - [x] Employee → `/` after login
-- **Location:** `components/Login.jsx` (lines 19-27)
+- **Location:** `components/Login.jsx`
 
 #### 2. Employees Page
 - [x] Admin-only page
@@ -109,7 +109,7 @@ This assignment enhances a job portal application by implementing:
 #### 2. Pagination
 - [x] Job listings paginated (6 per page)
 - [x] Page navigation controls
-- **Location:** `pages/JobListings.jsx` (lines 16-42)
+- **Location:** `pages/JobListings.jsx`
 
 ---
 
@@ -136,54 +136,59 @@ This assignment enhances a job portal application by implementing:
 
 ## 📁 Project Structure
 ```
-assignment-10/
+admin-employee-portal/
 │
-├── backend/
-│   ├── controllers/
-│   │   ├── jobControllers.js       # Job CRUD operations
-│   │   └── userController.js       # User management & auth
-│   ├── middleware/
-│   │   └── upload.js               # File upload config
-│   ├── models/
-│   │   ├── Job.js                  # Job schema
-│   │   └── User.js                 # User schema with type field
-│   ├── routes/
-│   │   ├── jobRoutes.js            # Job API routes
-│   │   └── userRoutes.js           # User API routes
-│   ├── .env                        # Environment variables
-│   ├── .gitignore                  # Git ignore rules
-│   ├── package.json                # Backend dependencies
-│   └── server.js                   # Express server setup
+├── assignment8/
+│   └── user-management-api/        # Backend (Express + Mongoose)
+│       ├── controllers/
+│       │   ├── jobControllers.js   # Job operations
+│       │   └── userController.js   # User management & auth
+│       ├── middleware/
+│       │   └── upload.js           # File upload config
+│       ├── models/
+│       │   ├── Job.js              # Job schema
+│       │   └── User.js             # User schema with type field
+│       ├── routes/
+│       │   ├── jobRoutes.js        # Job API routes
+│       │   └── userRoutes.js       # User API routes
+│       ├── .env.example            # Environment variable template
+│       ├── .gitignore
+│       ├── package.json
+│       ├── User_Management_API.postman_collection
+│       └── server.js               # Express server setup
 │
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Login.jsx           # Login with role redirect
-│   │   │   ├── Navbar.jsx          # Role-based navigation
-│   │   │   └── ProtectedRoute.jsx  # Auth & role guards
-│   │   ├── pages/
-│   │   │   ├── About.jsx           # About page
-│   │   │   ├── AddJob.jsx          # Admin: Create jobs
-│   │   │   ├── AdminEmployees.jsx  # Admin: View users table
-│   │   │   ├── CompanyShowcase.jsx # Companies page
-│   │   │   ├── Contact.jsx         # Contact page
-│   │   │   ├── Home.jsx            # Employee home
-│   │   │   └── JobListings.jsx     # Job listings with pagination
-│   │   ├── store/
-│   │   │   ├── slices/
-│   │   │   │   ├── authSlice.js    # Redux: Authentication
-│   │   │   │   ├── jobsSlice.js    # Redux: Jobs management
-│   │   │   │   └── usersSlice.js   # Redux: Users management
-│   │   │   └── index.js            # Redux store config
-│   │   ├── App.jsx                 # Main app with routing
-│   │   ├── App.css                 # App styles
-│   │   ├── main.jsx                # App entry point
-│   │   └── index.css               # Global styles
-│   ├── .gitignore                  # Git ignore rules
-│   ├── index.html                  # HTML template
-│   ├── package.json                # Frontend dependencies
-│   ├── vite.config.js              # Vite configuration
-│   └── eslint.config.js            # ESLint configuration
+├── assignment9/
+│   └── frontend/
+│       └── vite-project/           # Frontend (React + Redux + MUI)
+│           ├── src/
+│           │   ├── components/
+│           │   │   ├── Login.jsx           # Login with role redirect
+│           │   │   ├── Navbar.jsx          # Role-based navigation
+│           │   │   └── ProtectedRoute.jsx  # Auth & role guards
+│           │   ├── data/
+│           │   │   └── jobPosts.js
+│           │   ├── pages/
+│           │   │   ├── About.jsx
+│           │   │   ├── AddJob.jsx          # Admin: Create jobs
+│           │   │   ├── AdminEmployees.jsx  # Admin: View users table
+│           │   │   ├── CompanyShowcase.jsx
+│           │   │   ├── Contact.jsx
+│           │   │   ├── Home.jsx
+│           │   │   └── JobListings.jsx     # Job listings with pagination
+│           │   ├── store/
+│           │   │   ├── slices/
+│           │   │   │   ├── authSlice.js
+│           │   │   │   ├── jobsSlice.js
+│           │   │   │   └── usersSlice.js
+│           │   │   └── index.js            # Redux store config
+│           │   ├── App.jsx
+│           │   ├── App.css
+│           │   ├── main.jsx
+│           │   └── index.css
+│           ├── index.html
+│           ├── package.json
+│           ├── vite.config.js
+│           └── eslint.config.js
 │
 └── README.md                       # This file
 ```
@@ -199,25 +204,25 @@ assignment-10/
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/avadhanamvinayarekha/webdesign_vinayarekha/new/main/assignment10
-cd assignment-10
+git clone https://github.com/avadhanamvinayarekha/webdesign_vinayarekha.git
+cd webdesign_vinayarekha/admin-employee-portal
 ```
 
 ### Step 2: Install Backend Dependencies
 ```bash
-cd backend
+cd assignment8/user-management-api
 npm install
 ```
 
 ### Step 3: Install Frontend Dependencies
 ```bash
-cd ../frontend
+cd ../../assignment9/frontend/vite-project
 npm install
 ```
 
 ### Step 4: Configure Environment Variables
 
-Create `.env` file in `backend/` folder:
+Copy `.env.example` to `.env` in `assignment8/user-management-api/` and edit it:
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/userdb
@@ -238,14 +243,14 @@ sudo systemctl start mongod
 
 ### Step 2: Start Backend Server
 ```bash
-cd backend
+cd assignment8/user-management-api
 npm run dev
 ```
 Backend runs on: `http://localhost:3000`
 
 ### Step 3: Start Frontend (New Terminal)
 ```bash
-cd frontend
+cd assignment9/frontend/vite-project
 npm run dev
 ```
 Frontend runs on: `http://localhost:5173`

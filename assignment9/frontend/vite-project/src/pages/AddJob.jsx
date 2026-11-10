@@ -10,6 +10,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { createJob } from '../store/slices/jobsSlice';
 
 function AddJob() {
@@ -20,6 +21,7 @@ function AddJob() {
   const [success, setSuccess] = useState('');
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.jobs);
 
 
@@ -45,7 +47,7 @@ const handleSubmit = async (e) => {
       
       // Auto-redirect after 2 seconds
       setTimeout(() => {
-        window.location.href = '/admin/jobs';
+        navigate('/admin/jobs');
       }, 2000);
     }
   };
