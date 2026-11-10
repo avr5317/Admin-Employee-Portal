@@ -1,10 +1,11 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, CircularProgress } from '@mui/material';
 
 import Navbar from './components/Navbar';
 import Login from './components/Login';
+import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -15,11 +16,11 @@ const JobListings = lazy(() => import('./pages/JobListings'));
 const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
 const AddJob = lazy(() => import('./pages/AddJob'));
 const Register = lazy(() => import('./pages/Register'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 import { RequireAuth, RequireRole } from './components/ProtectedRoute';
 import { logout } from './store/slices/authSlice';
 
-import './App.css';
 
 // Error boundary resets whenever the route changes
 function BoundedRoutes({ children }) {
@@ -49,9 +50,15 @@ function App() {
 
   return (
     <Router>
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+
       {/* Navbar always visible */}
       <Navbar user={user} userName={user?.fullName} onLogout={handleLogout} />
 
+      <Box component="main" id="main-content" tabIndex={-1} sx={{ flex: 1, outline: 'none' }}>
       <BoundedRoutes>
       <Routes>
         {/* Public route */}
@@ -82,13 +89,14 @@ function App() {
           
         </Route>
 
-        {/* Default / catch-all */}
-        <Route
-          path="*"
-          element={<Navigate to={user ? (user.type === 'admin' ? '/admin/employees' : '/') : '/login'} replace />}
-        />
+        {/* Unknown URLs show a friendly 404 page */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </BoundedRoutes>
+      </Box>
+
+      <Footer user={user} />
+      </Box>
     </Router>
   );
 }

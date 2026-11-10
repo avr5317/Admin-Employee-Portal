@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux';
 import store from './store';
+import ColorModeProvider from './components/ColorModeProvider';
 import { logout } from './store/slices/authSlice';
 import { setUnauthorizedHandler } from './api/client';
 
@@ -13,8 +14,9 @@ setUnauthorizedHandler(() => store.dispatch(logout()));
 
 createRoot(document.getElementById('root')).render(
    <Provider store={store}>
-     <App />
-  
+     <ColorModeProvider>
+       <App />
+     </ColorModeProvider>
    </Provider> 
    
 )
