@@ -136,7 +136,7 @@ This assignment enhances a job portal application by implementing:
 
 ## 📁 Project Structure
 ```
-admin-employee-portal/
+Admin-Employee-Portal/
 │
 ├── assignment8/
 │   └── user-management-api/        # Backend (Express + Mongoose)
@@ -204,8 +204,8 @@ admin-employee-portal/
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/avadhanamvinayarekha/webdesign_vinayarekha.git
-cd webdesign_vinayarekha/admin-employee-portal
+git clone https://github.com/avr5317/Admin-Employee-Portal.git
+cd Admin-Employee-Portal
 ```
 
 ### Step 2: Install Backend Dependencies
