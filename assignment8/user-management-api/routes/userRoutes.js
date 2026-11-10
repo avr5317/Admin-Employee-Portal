@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, guardAdminCreation } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 // User routes
-router.post('/create', userController.createUser);
+router.post('/create', guardAdminCreation, userController.createUser);
+router.post('/register', userController.registerUser);
 router.get('/getAll', requireAuth, userController.getAllUsers);
 router.put('/edit', requireAdmin, userController.updateUser);
 router.delete('/delete', requireAdmin, userController.deleteUser);

@@ -75,6 +75,78 @@ exports.createUser = async (req, res) => {
     }
 };
 
+// Register (public self-service sign-up) - always creates an 'employee'
+exports.registerUser = async (req, res) => {
+    try {
+        // Only these fields are read; any "type" in the body is ignored
+        const { fullName, email, password } = req.body || {};
+
+        if (!fullName || !email || !password) {
+            return res.status(400).json({
+                error: 'Validation failed. fullName, email, and password are required.'
+            });
+        }
+
+        // Reject non-string values (prevents query-operator objects like {"$gt": ""})
+        if ([fullName, email, password].some((v) => typeof v !== 'string')) {
+            return res.status(400).json({
+                error: 'Validation failed. fullName, email, and password must be strings.'
+            });
+        }
+
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                error: 'Validation failed. Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character.'
+            });
+        }
+
+        // The schema stores emails trimmed and lowercased, so check the same form
+        const normalizedEmail = email.trim().toLowerCase();
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            return res.status(409).json({
+                error: 'Validation failed. Email already exists.'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Email format and fullName rules are enforced by the User schema on save
+        const user = new User({
+            fullName,
+            email: normalizedEmail,
+            password: hashedPassword,
+            type: 'employee'
+        });
+        await user.save();
+
+        return res.status(201).json({
+            message: 'User registered successfully.',
+            user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                type: user.type
+            }
+        });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                error: 'Validation failed.',
+                details: error.message
+            });
+        }
+        if (error.code === 11000) {
+            return res.status(409).json({
+                error: 'Validation failed. Email already exists.'
+            });
+        }
+        return res.status(500).json({
+            error: 'An error occurred while registering the user.'
+        });
+    }
+};
+
 // Get All Users (used by frontend + companies + admin page)
 exports.getAllUsers = async (req, res) => {
     try {
