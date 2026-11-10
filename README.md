@@ -9,7 +9,8 @@ A full-stack job portal application with role-based authentication and Redux sta
 This assignment enhances a job portal application by implementing:
 - **Role-based routing** - Separate admin and employee portals
 - **Redux state management** - All state handled through Redux store
-- **Material UI components** - Professional, responsive design
+- **Material UI components** - Consistent component library
+- **JWT authentication** - Token-based login with role-checked API endpoints
 - **Protected routes** - Login required for all pages
 - **RESTful API** - Backend with user type validation
 
@@ -102,9 +103,12 @@ This assignment enhances a job portal application by implementing:
 ### ⭐ Optional Features Implemented
 
 #### 1. Loading Spinners
-- [x] Shown during all API calls
-- [x] Better user experience
-- **Location:** All page components with `CircularProgress`
+- [x] Page-load spinner while a lazy-loaded page downloads (`App.jsx`)
+- [x] Spinner while the saved login state is loading (`components/ProtectedRoute.jsx`)
+- [x] Spinner while data loads on the Jobs, Companies and Employees pages
+- [x] Spinner inside the Create Job button while the job is being saved
+- Not every API call has a spinner (for example, the login button does not show one)
+- **Location:** `App.jsx`, `ProtectedRoute.jsx`, `JobListings.jsx`, `CompanyShowcase.jsx`, `AdminEmployees.jsx`, `AddJob.jsx`
 
 #### 2. Pagination
 - [x] Job listings paginated (6 per page)
@@ -120,7 +124,7 @@ This assignment enhances a job portal application by implementing:
 - **Redux Toolkit 2.10.1** - State management
 - **React Router 7.9.5** - Client-side routing
 - **Material-UI 7.3.5** - UI component library
-- **Axios 1.13.2** - HTTP client
+- **Axios 1.13.2** - HTTP client (shared instance with auth header)
 - **Vite 7.2.2** - Build tool
 
 ### Backend
@@ -129,6 +133,7 @@ This assignment enhances a job portal application by implementing:
 - **MongoDB** - Database
 - **Mongoose 8.19.3** - ODM
 - **bcrypt 6.0.0** - Password hashing
+- **jsonwebtoken ^9.0.3** - JWT signing and verification
 - **CORS 2.8.5** - Cross-origin requests
 - **dotenv 17.2.3** - Environment variables
 
@@ -144,6 +149,7 @@ Admin-Employee-Portal/
 │       │   ├── jobControllers.js   # Job operations
 │       │   └── userController.js   # User management & auth
 │       ├── middleware/
+│       │   ├── auth.js             # requireAuth / requireAdmin (JWT)
 │       │   └── upload.js           # File upload config
 │       ├── models/
 │       │   ├── Job.js              # Job schema
@@ -161,7 +167,10 @@ Admin-Employee-Portal/
 │   └── frontend/
 │       └── vite-project/           # Frontend (React + Redux + MUI)
 │           ├── src/
+│           │   ├── api/
+│           │   │   └── client.js           # Shared axios client (auth header, 401 handling)
 │           │   ├── components/
+│           │   │   ├── ErrorBoundary.jsx   # Friendly error screen with Reload button
 │           │   │   ├── Login.jsx           # Login with role redirect
 │           │   │   ├── Navbar.jsx          # Role-based navigation
 │           │   │   └── ProtectedRoute.jsx  # Auth & role guards
@@ -185,11 +194,13 @@ Admin-Employee-Portal/
 │           │   ├── App.css
 │           │   ├── main.jsx
 │           │   └── index.css
+│           ├── .env.example            # Optional VITE_API_URL
 │           ├── index.html
 │           ├── package.json
 │           ├── vite.config.js
 │           └── eslint.config.js
 │
+├── .gitignore                      # Ignores .DS_Store
 └── README.md                       # This file
 ```
 
@@ -222,11 +233,30 @@ npm install
 
 ### Step 4: Configure Environment Variables
 
-Copy `.env.example` to `.env` in `assignment8/user-management-api/` and edit it:
+**Backend (required):** copy `.env.example` to `.env` in `assignment8/user-management-api/` and edit it:
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/userdb
+JWT_SECRET=<your-long-random-secret>
 ```
+| Variable | Purpose |
+|----------|---------|
+| `PORT` | Port the API listens on (defaults to 3000 if unset) |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret used to sign and verify login tokens |
+
+Generate a secret with:
+```bash
+openssl rand -hex 32
+```
+Never commit `.env` or a real secret. `.env.example` contains placeholders only.
+
+**Frontend (optional):** to point the app at a different API address, copy
+`assignment9/frontend/vite-project/.env.example` to `.env` and set:
+```env
+VITE_API_URL=http://localhost:3000
+```
+If `VITE_API_URL` is not set, the app uses `http://localhost:3000`.
 
 ---
 
@@ -313,9 +343,30 @@ curl -X POST http://localhost:3000/user/create \
 
 ## 🔌 API Endpoints
 
+Protected endpoints expect the header `Authorization: Bearer <token>`.
+A missing or invalid/expired token returns `401`; a logged-in non-admin on an admin endpoint returns `403`.
+
+**Access levels:** *Public* = no token needed, *Logged-in* = any valid token, *Admin only* = valid token with `type: "admin"`.
+
 ### User Endpoints
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
+| POST | `/user/create` | Create new user | Public |
+| POST | `/user/login` | User login. Returns `{ message, user, token }` | Public |
+| GET | `/user/users` | Get all users (no passwords) | Admin only |
+| GET | `/user/getAll` | Get all users (no passwords; used by Company Showcase) | Logged-in |
+| PUT | `/user/edit` | Update user | Admin only |
+| DELETE | `/user/delete` | Delete user | Admin only |
+| POST | `/user/uploadImage` | Upload user image | Logged-in |
+
+### Job Endpoints
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/api/create/job` | Create new job | Admin only |
+| GET | `/api/jobs` | Get all jobs | Logged-in |
+| DELETE | `/api/delete/job/:id` | Delete job | Admin only |
+
+--------|----------|-------------|--------|
 | POST | `/user/create` | Create new user | Public |
 | POST | `/user/login` | User login | Public |
 | GET | `/user/users` | Get all users (no passwords) | Protected |
@@ -340,13 +391,14 @@ curl -X POST http://localhost:3000/user/create \
 2. **View Employees** - See all users in a table
 3. **Add Job** - Navigate to `/add-job`, fill form, submit
 4. **View Jobs** - Navigate to `/admin/jobs`, see all listings
-5. **Access Other Pages** - Companies, About, Contact
-6. **Logout** - Return to login page
+5. **Delete Jobs** - Each job card shows a **Delete** button (instead of Apply) with a confirmation prompt; if the delete fails, an error message is shown
+6. **Access Other Pages** - Companies, About, Contact
+7. **Logout** - Return to login page
 
 ### Employee Flow
 1. **Login** as employee → Redirected to `/` (Home)
 2. **Browse Jobs** - Navigate to `/jobs`, see listings with pagination
-3. **Apply to Jobs** - Click "Apply" button (shows confirmation)
+3. **Apply to Jobs** - Click "Apply" button (shows an alert only)
 4. **View Companies** - See partner companies
 5. **Navigation** - Access About, Contact pages
 6. **Logout** - Return to login page
@@ -355,12 +407,29 @@ curl -X POST http://localhost:3000/user/create \
 
 ## 🔒 Security Features
 
+- ✅ **JWT login:** `POST /user/login` returns a token signed with `JWT_SECRET`. It expires after 1 day and contains the user's `id`, `email` and `type`.
+- ✅ **`requireAuth` middleware** (`middleware/auth.js`): reads `Authorization: Bearer <token>`; returns JSON `401` if the token is missing, invalid or expired.
+- ✅ **`requireAdmin` middleware:** `requireAuth` plus a check that `type === 'admin'`; returns JSON `403` for non-admins.
 - ✅ Password hashing with bcrypt
-- ✅ Input validation on all forms
-- ✅ Role-based access control
-- ✅ Protected routes with authentication guards
-- ✅ CORS configuration for cross-origin requests
-- ✅ Environment variables for sensitive data
+- ✅ Server-side validation on user create/update (type must be admin/employee, password strength); the login and Add Job forms use `required` fields
+- ✅ Role-based access control on API endpoints (see API table) and on frontend routes
+- ✅ Protected routes with authentication guards (`RequireAuth`, `RequireRole`)
+- ✅ CORS restricted to `http://localhost:5173` (set in `server.js`)
+- ✅ Secrets (`MONGODB_URI`, `JWT_SECRET`) come from environment variables, and `.env` is gitignored
+- ⚠️ On the client, the token and user are stored in `localStorage` (keys `auth_token` and `auth_user`). See Known Limitations.
+
+---
+
+
+## ✨ Frontend Features
+
+- **Shared axios client** (`src/api/client.js`): one instance for all API calls. The base URL comes from `VITE_API_URL` (default `http://localhost:3000`). A request interceptor adds `Authorization: Bearer <token>` from `localStorage`.
+- **Auto-logout on 401:** if a request that sent a token gets a 401, the client clears the saved login and calls a logout handler registered in `main.jsx` (the store is not imported into the client). A 401 from the login call itself (wrong password) does not log you out.
+- **Login restored on refresh:** the saved user and token are read from `localStorage` when the app starts (wrapped in try/catch so bad data cannot crash it).
+- **Admin can delete jobs:** Delete button with a confirmation prompt on the job listings; if deleting the last card on the last page empties it, the list moves to the previous page.
+- **Lazy-loaded pages:** Home, About, Companies, Contact, Jobs, Employees and Add Job load with `React.lazy`; a centered spinner shows while a page loads (`Suspense`). Navbar and Login load immediately.
+- **Error boundary:** `components/ErrorBoundary.jsx` shows a friendly message with a **Reload** button if a page crashes while rendering or fails to load; it resets when you navigate to another route.
+- **Company Showcase through Redux:** the page loads its data with the `fetchCompanies` thunk instead of calling the API directly.
 
 ---
 
@@ -368,22 +437,27 @@ curl -X POST http://localhost:3000/user/create \
 
 ### Auth Slice
 ```javascript
-// Manages: user, loading, error
+// Manages: user, token, loading, error
 // Actions: loginThunk, logout
+// loginThunk keeps { user, token } from the login response, saves both to localStorage,
+// and stores both in state. Initial state restores them from localStorage.
+// logout clears state and localStorage.
 // File: store/slices/authSlice.js
 ```
 
 ### Jobs Slice
 ```javascript
-// Manages: items (jobs array), loading, error
-// Actions: fetchJobs, createJob
+// Manages: items (jobs array), loading, error, deleteError
+// Actions: fetchJobs, createJob, deleteJob
+// deleteJob calls DELETE /api/delete/job/:id and removes the job from items on success.
 // File: store/slices/jobsSlice.js
 ```
 
 ### Users Slice
 ```javascript
-// Manages: list (users array), loading, error
-// Actions: fetchUsers
+// Manages: list (users array), loading, error,
+//          companies, companiesLoading, companiesError
+// Actions: fetchUsers (admin Employees page), fetchCompanies (Company Showcase page)
 // File: store/slices/usersSlice.js
 ```
 
@@ -391,25 +465,18 @@ curl -X POST http://localhost:3000/user/create \
 
 ## 📱 Responsive Design
 
-- ✅ Mobile-first approach
-- ✅ Grid system for job cards:
-  - Mobile (xs): 1 column
-  - Tablet (sm): 2 columns
-  - Desktop (md+): 3 columns
-- ✅ Responsive navigation bar
-- ✅ Touch-friendly buttons and forms
+Responsive layout has not been verified yet and is planned as a later step. The pages use Material UI components, but this README makes no claims about mobile, tablet or desktop behavior.
 
 ---
 
 ## ⚡ Performance Features
 
-- ✅ Loading spinners during API calls
 - ✅ Pagination for job listings (6 per page)
-- ✅ Lazy loading with React Router
-- ✅ Optimized Redux with createAsyncThunk
-- ✅ Error boundary handling
+- ✅ Lazy-loaded pages with `React.lazy` and a `Suspense` spinner (separate JavaScript chunk per page in the production build)
+- ✅ Error boundary around the routes (catches render and lazy-load errors only)
 
 ---
+
 
 ## 🧪 Testing Checklist
 
@@ -443,17 +510,22 @@ curl -X POST http://localhost:3000/user/create \
 
 ## 🐛 Known Issues & Limitations
 
-- Apply button shows alert (not connected to actual application system)
+- The JWT is stored in `localStorage`, so scripts injected into the page (XSS) could read it
+- No refresh tokens: when the 1-day token expires, the user has to log in again
+- No rate limiting on any endpoint, including login
+- `POST /user/uploadImage` lets any logged-in user set an image for any email address
+- Apply button only shows an alert (not connected to an actual application system)
+- No automated tests
+- The error boundary catches render and lazy-load errors only, not errors in event handlers or async code
+- CORS allows only `http://localhost:5173` (hard-coded in `server.js`)
 - No email verification for user registration
 - No password reset functionality
-- Session management uses Redux (no JWT tokens)
-- File uploads limited to 5MB
+- File uploads limited to 5MB (JPEG, PNG or GIF)
 
 ---
 
 ## 🔮 Future Enhancements
 
-- [ ] JWT token-based authentication
 - [ ] Job application tracking system
 - [ ] Email notifications
 - [ ] Advanced job search and filters
@@ -500,6 +572,7 @@ npm run dev
 - Check backend terminal for errors
 - Verify user was created successfully
 - Check password meets requirements
+- Check `JWT_SECRET` is set in the backend `.env`
 
 ### CORS errors
 - Verify backend CORS configuration in `server.js`
@@ -553,6 +626,7 @@ npm run dev
   "cors": "^2.8.5",
   "dotenv": "^17.2.3",
   "express": "^5.1.0",
+  "jsonwebtoken": "^9.0.3",
   "mongoose": "^8.19.3",
   "multer": "^2.0.2"
 }
