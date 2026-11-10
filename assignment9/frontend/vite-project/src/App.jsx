@@ -1,22 +1,42 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Box, CircularProgress } from '@mui/material';
 
 import Navbar from './components/Navbar';
 import Login from './components/Login';
+import ErrorBoundary from './components/ErrorBoundary';
 
-import Home from './pages/Home';
-import About from './pages/About';
-import CompanyShowcase from './pages/CompanyShowcase';
-import Contact from './pages/Contact';
-import JobListings from './pages/JobListings';
-import AdminEmployees from './pages/AdminEmployees';
-import AddJob from './pages/AddJob';
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const CompanyShowcase = lazy(() => import('./pages/CompanyShowcase'));
+const Contact = lazy(() => import('./pages/Contact'));
+const JobListings = lazy(() => import('./pages/JobListings'));
+const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
+const AddJob = lazy(() => import('./pages/AddJob'));
 
 import { RequireAuth, RequireRole } from './components/ProtectedRoute';
 import { logout } from './store/slices/authSlice';
 
 import './App.css';
+
+// Error boundary resets whenever the route changes
+function BoundedRoutes({ children }) {
+  const location = useLocation();
+  return (
+    <ErrorBoundary resetKey={location.pathname}>
+      <Suspense
+        fallback={
+          <Box sx={{ mt: 10, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Box>
+        }
+      >
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 function App() {
   const dispatch = useDispatch();
@@ -31,6 +51,7 @@ function App() {
       {/* Navbar always visible */}
       <Navbar user={user} userName={user?.fullName} onLogout={handleLogout} />
 
+      <BoundedRoutes>
       <Routes>
         {/* Public route */}
         <Route path="/login" element={<Login />} />
@@ -65,6 +86,7 @@ function App() {
           element={<Navigate to={user ? (user.type === 'admin' ? '/admin/employees' : '/') : '/login'} replace />}
         />
       </Routes>
+      </BoundedRoutes>
     </Router>
   );
 }
