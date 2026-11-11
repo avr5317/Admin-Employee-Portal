@@ -18,14 +18,7 @@ router.post('/login', userController.loginUser);
 
 
 // Image upload route with multer middleware
-router.post('/uploadImage', requireAuth, upload.single('image'), (req, res, next) => {
-    // Handle multer errors
-    if (req.fileValidationError) {
-        return res.status(400).json({ 
-            error: req.fileValidationError 
-        });
-    }
-    next();
-}, userController.uploadImage);
+// Multer errors (such as a file over 5MB) go to the error handler in server.js
+router.post('/uploadImage', requireAuth, upload.single('image'), userController.uploadImage);
 
 module.exports = router;

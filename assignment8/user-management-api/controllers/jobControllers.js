@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Job = require('../models/Job');
 
 exports.createJob = async (req, res) => {
@@ -31,6 +32,9 @@ exports.deleteJob = async (req, res) => {
     
     if (!id) {
       return res.status(400).json({ error: 'Job ID is required.' });
+    }
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid job ID.' });
     }
 
     const job = await Job.findByIdAndDelete(id);

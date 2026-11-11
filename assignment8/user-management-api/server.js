@@ -3,7 +3,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const path = require('path');
 const cors = require('cors');
 
 // 2. Load environment variables
@@ -31,7 +30,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads folder (for accessing uploaded images)
-app.use('/images', express.static(path.join(__dirname, 'uploads/images')));
+// nosniff stops browsers from guessing a different type than the one we send
+const { uploadDir } = require('./config/uploads');
+app.use('/images', express.static(uploadDir, {
+    setHeaders: (res) => res.set('X-Content-Type-Options', 'nosniff')
+}));
 
 // 5. Define routes - ROUTES COME AFTER MIDDLEWARE
 const jobRoutes = require('./routes/jobRoutes');
@@ -63,7 +66,7 @@ app.get('/', (req, res) => {
 app.use((err, req, res, next) => {
     if (err instanceof require('multer').MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({ 
+            return res.status(413).json({ 
                 error: 'File size too large. Maximum size is 5MB.' 
             });
         }

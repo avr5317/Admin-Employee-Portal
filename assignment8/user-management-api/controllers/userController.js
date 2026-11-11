@@ -5,6 +5,10 @@ const jwt = require('jsonwebtoken');
 const { JWT_ALGORITHM } = require('../config/jwt');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const { uploadDir } = require('../config/uploads');
+const { detectImageType } = require('../utils/imageType');
+const { rejectNonStringInput } = require('../utils/validateInput');
 
 // Password validation regex
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -15,7 +19,9 @@ const ALLOWED_TYPES = ['admin', 'employee'];
 // Create User
 exports.createUser = async (req, res) => {
     try {
-        const { fullName, email, password, type } = req.body;
+        const body = req.body || {};
+        if (rejectNonStringInput(res, body, ['fullName', 'email', 'password', 'type'])) return;
+        const { fullName, email, password, type } = body;
 
         // Validate required fields
         if (!fullName || !email || !password || !type) {
@@ -80,18 +86,15 @@ exports.createUser = async (req, res) => {
 exports.registerUser = async (req, res) => {
     try {
         // Only these fields are read; any "type" in the body is ignored
-        const { fullName, email, password } = req.body || {};
+        const body = req.body || {};
+
+        // Reject non-string values (prevents query-operator objects like {"$gt": ""})
+        if (rejectNonStringInput(res, body, ['fullName', 'email', 'password'])) return;
+        const { fullName, email, password } = body;
 
         if (!fullName || !email || !password) {
             return res.status(400).json({
                 error: 'Validation failed. fullName, email, and password are required.'
-            });
-        }
-
-        // Reject non-string values (prevents query-operator objects like {"$gt": ""})
-        if ([fullName, email, password].some((v) => typeof v !== 'string')) {
-            return res.status(400).json({
-                error: 'Validation failed. fullName, email, and password must be strings.'
             });
         }
 
@@ -177,7 +180,9 @@ exports.getUsers = exports.getAllUsers;
 // Update User
 exports.updateUser = async (req, res) => {
     try {
-        const { email, fullName, password, type } = req.body;
+        const body = req.body || {};
+        if (rejectNonStringInput(res, body, ['email', 'fullName', 'password', 'type'])) return;
+        const { email, fullName, password, type } = body;
 
         // Email is required to identify the user
         if (!email) {
@@ -241,7 +246,9 @@ exports.updateUser = async (req, res) => {
 // Delete User
 exports.deleteUser = async (req, res) => {
     try {
-        const { email } = req.body;
+        const body = req.body || {};
+        if (rejectNonStringInput(res, body, ['email'])) return;
+        const { email } = body;
 
         if (!email) {
             return res.status(400).json({
@@ -268,59 +275,91 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
-// Upload Image
-exports.uploadImage = async (req, res) => {
+// Delete a previously stored image file. Only files inside the upload folder are touched.
+async function removeStoredImage(imagePath) {
+    if (typeof imagePath !== 'string' || !imagePath.startsWith('/images/')) return;
+    const fullPath = path.join(uploadDir, path.basename(imagePath));
+    if (path.dirname(fullPath) !== uploadDir) return;
     try {
-        const { email } = req.body;
-
-        // Validate email is provided
-        if (!email) {
-            return res.status(400).json({
-                error: 'Email is required.'
-            });
+        await fs.promises.unlink(fullPath);
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            console.error('Could not delete old image:', error.message);
         }
+    }
+}
 
-        // Check if user exists
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                error: 'User not found.'
-            });
-        }
-
-        // Check if user already has an image
-        if (user.imagePath) {
-            return res.status(400).json({
-                error: 'Image already exists for this user.'
-            });
-        }
-
-        // Check if file was uploaded
+// Upload Image
+// - A non-admin always uploads for their OWN account; any email in the body is ignored.
+// - An admin may pass "email" to set an image for any existing user (default: their own).
+// - The real file type is checked from the file's first bytes; the stored name is a
+//   server-generated UUID plus an extension chosen from the detected type.
+// - An owner may replace their image; the old file is deleted after the new one is saved.
+exports.uploadImage = async (req, res) => {
+    let savedPath = null;
+    try {
         if (!req.file) {
             return res.status(400).json({
                 error: 'No image file provided.'
             });
         }
 
-        // Save image path to database
-        const filePath = `/images/${req.file.filename}`;
-        user.imagePath = filePath;
-        await user.save();
+        const type = detectImageType(req.file.buffer);
+        if (!type) {
+            return res.status(400).json({
+                error: 'Invalid file. Only PNG, JPEG, GIF and WebP images are allowed.'
+            });
+        }
 
-        res.status(201).json({
-            message: 'Image uploaded successfully.',
+        // Decide whose image this is
+        const body = req.body || {};
+        let user;
+        if (req.user.type === 'admin' && body.email !== undefined && body.email !== '') {
+            if (rejectNonStringInput(res, body, ['email'])) return;
+            user = await User.findOne({ email: body.email.trim().toLowerCase() });
+        } else {
+            user = await User.findById(req.user.id);
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found.'
+            });
+        }
+
+        // Write the file under a name the client cannot influence
+        const fileName = `${crypto.randomUUID()}.${type.ext}`;
+        savedPath = path.join(uploadDir, fileName);
+        await fs.promises.writeFile(savedPath, req.file.buffer, { flag: 'wx' });
+
+        const previousImage = user.imagePath;
+        const filePath = `/images/${fileName}`;
+        await User.updateOne({ _id: user._id }, { $set: { imagePath: filePath } });
+        savedPath = null; // saved: keep the file
+
+        // Replace: remove the old file only after the new one is stored
+        if (previousImage) {
+            await removeStoredImage(previousImage);
+        }
+
+        return res.status(previousImage ? 200 : 201).json({
+            message: previousImage ? 'Image replaced successfully.' : 'Image uploaded successfully.',
             filePath: filePath
         });
 
     } catch (error) {
-        // If there's an error, delete the uploaded file
-        if (req.file) {
-            fs.unlinkSync(req.file.path);
+        // If anything failed after the file was written, delete it
+        if (savedPath) {
+            try {
+                await fs.promises.unlink(savedPath);
+            } catch (unlinkError) {
+                // nothing to clean up
+            }
         }
 
-        res.status(500).json({
-            error: 'An error occurred while uploading the image.',
-            details: error.message
+        console.error('Upload image error:', error.message);
+        return res.status(500).json({
+            error: 'An error occurred while uploading the image.'
         });
     }
 };
@@ -328,7 +367,9 @@ exports.uploadImage = async (req, res) => {
 // Login User
 exports.loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const body = req.body || {};
+        if (rejectNonStringInput(res, body, ['email', 'password'])) return;
+        const { email, password } = body;
 
         // Validate input
         if (!email || !password) {
