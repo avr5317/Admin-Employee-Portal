@@ -174,7 +174,7 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// Alias for Assignment 10 GET /users endpoint
+// Alias: GET /user/users is served by the same handler as getAllUsers
 exports.getUsers = exports.getAllUsers;
 
 // Update User

@@ -45,18 +45,21 @@ const BACKEND_STACK = ['Node.js', 'Express', 'MongoDB', 'Mongoose', 'JWT', 'bcry
 
 const SECURITY = [
   ['JWT sign-in', 'Logging in returns a signed token that expires after one day. The app sends it with every API request.'],
-  ['Admin-only endpoints', 'Creating and deleting jobs, listing users, and editing or deleting users require an admin token. Everything else except sign-up and login needs a logged-in user.'],
+  ['Admin-only endpoints', 'Creating and deleting jobs, listing users, and editing or deleting users require an admin token. Other routes, except sign-up and login, need a logged-in user.'],
+  ['Roles checked on every request', 'The server reads your role from the database each time, so a deleted user is signed out and a demoted admin loses access immediately.'],
   ['Role-based routes', 'Employee and admin pages are separate. Someone with the wrong role is redirected away.'],
-  ['Password hashing', 'Passwords are hashed with bcrypt before they are stored.'],
+  ['Password hashing', 'Passwords are hashed with bcrypt before they are stored. The server refuses to start without a strong signing secret.'],
+  ['Safe uploads', 'Only the account owner can set their image (admins can set any). Files get random names, their type is checked from the content, and the limit is 5 MB.'],
   ['Automatic sign-out', 'If the API rejects the token, for example because it expired, the app clears the saved login and signs you out.'],
   ['Lazy-loaded pages and an error boundary', 'Pages are loaded on demand. If a page fails to render or load, you get a message with a Reload button instead of a blank screen.'],
 ];
 
 const LIMITATIONS = [
-  'The login token is stored in localStorage, so a script injected into the page could read it.',
-  'Apply opens a LinkedIn job search for the title and company in a new tab. It is not a link to a specific posting, and the app does not track applications.',
-  'There are no refresh tokens or rate limiting.',
-  'There are no automated tests.',
+  'The login token is stored in localStorage, so a script injected into the page could read it. Next step: an httpOnly cookie.',
+  'There are no refresh tokens and no login rate limiting. Next step: add both.',
+  'Apply opens a LinkedIn job search for the title and company. It is not a link to a specific posting, and applications are not tracked. Next step: store applications in the API.',
+  'The Contact form does not send messages. Next step: an API endpoint or an email service.',
+  'The frontend has no automated tests. Next step: component and end-to-end tests.',
 ];
 
 const FAQ = [
@@ -70,7 +73,7 @@ const FAQ = [
   ],
   [
     'Can I make an admin account from the sign-up page?',
-    'No. Registration always creates an employee. After the first admin exists, only an admin can create another admin account, through the API.',
+    'No. Registration always creates an employee, and only an admin can create another admin account, through the API. The first admin comes from the seed script on a local database.',
   ],
   [
     'Where is my data stored?',
@@ -79,6 +82,10 @@ const FAQ = [
   [
     'What does the Apply button do?',
     'It opens a LinkedIn job search for the job title and company in a new tab. The app does not track applications, and the search may not show this exact job, because the jobs here are entered by admins and are not pulled from LinkedIn.',
+  ],
+  [
+    'Does the Contact form send my message?',
+    'No. The form checks your input but does not send anything. Use the GitHub links on the Contact page to reach the author.',
   ],
   [
     'How long do I stay logged in?',
@@ -136,8 +143,9 @@ function About() {
         </Typography>
         <Typography color="text.secondary">
           Job Portal is a full-stack web app for two kinds of people. Admins post and manage jobs.
-          Employees browse the jobs and can search for each one on LinkedIn. It is a portfolio project, built to practise React,
-          Redux, role-based access and a secured REST API. It is not a live hiring service.
+          Employees browse the jobs and can search for each one on LinkedIn. It combines a React and Redux
+          frontend with a JWT-secured Express and MongoDB API and role-based access control. It is a portfolio
+          project, not a live hiring service.
         </Typography>
       </Paper>
 
@@ -199,7 +207,7 @@ function About() {
       <Section id="limitations" title="Known limitations">
         <Alert severity="warning" icon={false}>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            This is a portfolio project, so please keep these in mind:
+            What is not covered yet, and the planned next step for each:
           </Typography>
           <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
             {LIMITATIONS.map((item) => (
