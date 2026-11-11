@@ -35,7 +35,7 @@ const ADMIN_CAN = [
 
 const EMPLOYEE_CAN = [
   'Browse jobs and search them by title or company',
-  'Press Apply on a job (the demo shows a message only)',
+  'Press Apply on a job (it shows a message only)',
   'See which companies are hiring and how many roles each has open',
   'Register their own employee account from the sign-up page',
 ];
@@ -65,8 +65,8 @@ const FAQ = [
     'Every account is either an admin or an employee. Admins can add and delete jobs and see the Employees table. Employees can browse jobs and companies. The API checks the role for admin-only actions, so hiding a button is not the only protection.',
   ],
   [
-    'How can I try the demo?',
-    'Register to create an employee account. If you run the backend on your own machine, running npm run seed in assignment8/user-management-api adds demo data and two accounts: admin@demo.test and employee@demo.test, both with the password Passw0rd!. These accounts are for local development only.',
+    'How can I try it out?',
+    'Register to create an employee account. If you run the backend on your own machine, running npm run seed in assignment8/user-management-api adds sample data and two accounts: admin@portal.test and employee@portal.test, both with the password Passw0rd!. These accounts are for local development only.',
   ],
   [
     'Can I make an admin account from the sign-up page?',
@@ -199,7 +199,7 @@ function About() {
       <Section id="limitations" title="Known limitations">
         <Alert severity="warning" icon={false}>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            This is a demo, so please keep these in mind:
+            This is a portfolio project, so please keep these in mind:
           </Typography>
           <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
             {LIMITATIONS.map((item) => (

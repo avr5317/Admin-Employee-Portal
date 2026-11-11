@@ -34,7 +34,7 @@ function Footer({ user }) {
               Job Portal
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This is a demo project.
+              Portfolio project.
             </Typography>
           </Box>
 

@@ -165,7 +165,7 @@ Admin-Employee-Portal/
 │       │   ├── jobRoutes.js        # Job API routes
 │       │   └── userRoutes.js       # User API routes
 │       ├── scripts/
-│       │   └── seed.js             # Local demo data (npm run seed)
+│       │   └── seed.js             # Local sample data (npm run seed)
 │       ├── .env.example            # Environment variable template
 │       ├── .gitignore
 │       ├── package.json
@@ -365,7 +365,7 @@ curl -X POST http://localhost:3000/user/create \
 
 ---
 
-## 🌱 Demo Data (local development only)
+## 🌱 Sample Data (local development only)
 
 To fill an empty local database with sample data, run from `assignment8/user-management-api/`:
 ```bash
@@ -376,14 +376,14 @@ It creates:
 - 12 jobs from fictional companies
 - 6 fictional partner company accounts (users with a generated placeholder image saved in `uploads/images`). The Companies page no longer reads these; it builds its cards from the jobs, so the companies shown come from the 12 seeded jobs.
 
-| Demo login | Email | Password |
+| Sample login | Email | Password |
 |------------|-------|----------|
-| Admin | `admin@demo.test` | `Passw0rd!` |
-| Employee | `employee@demo.test` | `Passw0rd!` |
+| Admin | `admin@portal.test` | `Passw0rd!` |
+| Employee | `employee@portal.test` | `Passw0rd!` |
 
-- **For local development only.** The demo passwords are public. Never use this data, or these logins, on a shared or deployed system.
+- **For local development only.** The sample passwords are public. Never use this data, or these logins, on a shared or deployed system.
 - The script refuses to run unless `MONGODB_URI` points at `localhost` or `127.0.0.1`.
-- It is safe to run more than once: users are matched by email and jobs by company name + job title, so no duplicates are created. Running it again resets the two demo passwords to the values above.
+- It is safe to run more than once: users are matched by email and jobs by company name + job title, so no duplicates are created. Running it again resets the two sample passwords to the values above.
 
 ---
 
@@ -465,7 +465,7 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 - **Layout shell:** sticky navbar that collapses into a menu drawer on narrow screens, the signed-in user's name and role in a chip with a Logout menu, a footer, a skip-to-content link, and a 404 page for unknown URLs.
 - **Home page:** a hero with a button that depends on the role, and stats built from real data (open jobs, companies hiring, and for admins the number of users). A logged-out visitor is redirected to Login before reaching Home, so the logged-out version is not visible in the current routes.
 - **About page:** what the project is, what admins and employees can do, the tech stack, security and architecture notes, known limitations and an FAQ.
-- **Contact page:** a validated form with a character counter and a link to the GitHub repo and its issues page. **It is a demo form and sends nothing.** If `VITE_CONTACT_EMAIL` is set, a "Send by email" button opens a `mailto:` link.
+- **Contact page:** a validated form with a character counter and a link to the GitHub repo and its issues page. **The form does not send messages.** If `VITE_CONTACT_EMAIL` is set, a "Send by email" button opens a `mailto:` link.
 
 ---
 
@@ -550,7 +550,7 @@ The layouts use Material UI breakpoints (the job and company grids, a stacked Co
 - No rate limiting on any endpoint, including login
 - `POST /user/uploadImage` lets any logged-in user set an image for any email address
 - Apply button only shows a message (not connected to an actual application system)
-- The Contact form is a demo and sends nothing
+- The Contact form does not send messages
 - No automated tests
 - The error boundary catches render and lazy-load errors only, not errors in event handlers or async code
 - CORS allows only `http://localhost:5173` (hard-coded in `server.js`)

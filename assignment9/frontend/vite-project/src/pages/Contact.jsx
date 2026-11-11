@@ -59,7 +59,7 @@ function Contact() {
     setTouched({ name: true, email: true, subject: true, message: true });
     if (!isValid) return;
 
-    // This demo form does not send anything. The short wait only shows the loading state.
+    // This form does not send anything. The short wait only shows the loading state.
     setLoading(true);
     timer.current = setTimeout(() => {
       setLoading(false);
@@ -92,13 +92,13 @@ function Contact() {
   return (
     <Page
       title="Contact"
-      subtitle="This page is part of the demo project."
+      subtitle="Questions or feedback about this project."
     >
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
           <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 4 } }}>
             <Alert severity="info" sx={{ mb: 1 }}>
-              This is a demo form. It does not send messages anywhere.
+              This form doesn't send messages. Use the GitHub link to reach me.
             </Alert>
 
             <Box component="form" onSubmit={handleSubmit} noValidate aria-label="Contact form">
@@ -183,7 +183,7 @@ function Contact() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="info" onClose={() => setSnackbarOpen(false)} sx={{ width: '100%', boxShadow: 3 }}>
-          Thanks. This demo form does not send messages.
+          Thanks. This form doesn't send messages. Use the GitHub link to reach me.
         </Alert>
       </Snackbar>
     </Page>

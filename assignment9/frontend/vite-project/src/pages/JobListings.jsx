@@ -94,7 +94,7 @@ function JobListings() {
 
   const handleApply = (job) => {
     showToast(
-      `Thanks for your interest in ${job.jobTitle} at ${job.companyName}. This demo does not store applications.`,
+      `Thanks for your interest in ${job.jobTitle} at ${job.companyName}. Applications are not stored.`,
       'info'
     );
   };

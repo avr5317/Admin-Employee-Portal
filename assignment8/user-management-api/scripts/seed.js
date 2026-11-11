@@ -1,5 +1,5 @@
 // scripts/seed.js
-// Local development demo data. Safe to run repeatedly (idempotent).
+// Local development sample data. Safe to run repeatedly (idempotent).
 // REFUSES to run unless MONGODB_URI points at localhost or 127.0.0.1.
 //
 // Usage: npm run seed
@@ -13,7 +13,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Job = require('../models/Job');
 
-const DEMO_PASSWORD = 'Passw0rd!';
+const SAMPLE_PASSWORD = 'Passw0rd!';
 const LOCAL_HOSTS = ['localhost', '127.0.0.1'];
 const IMAGE_DIR = path.join(__dirname, '..', 'uploads', 'images');
 
@@ -45,12 +45,12 @@ function assertLocalDatabase(uri) {
 // Partner companies are User records WITH an imagePath: the Companies page lists
 // users that have an image (name = fullName, description = email, image = /images/<file>).
 const COMPANIES = [
-    { fullName: 'Northwind Analytics', email: 'hello@northwind-analytics.demo.test', color: '#1565c0' },
-    { fullName: 'Bluepeak Logistics', email: 'hello@bluepeak-logistics.demo.test', color: '#00838f' },
-    { fullName: 'Cedarwood Health', email: 'hello@cedarwood-health.demo.test', color: '#2e7d32' },
-    { fullName: 'Lumen Robotics', email: 'hello@lumen-robotics.demo.test', color: '#6a1b9a' },
-    { fullName: 'Harborview Finance', email: 'hello@harborview-finance.demo.test', color: '#ef6c00' },
-    { fullName: 'Summit Ridge Energy', email: 'hello@summit-ridge-energy.demo.test', color: '#c62828' }
+    { fullName: 'Northwind Analytics', email: 'hello@northwind-analytics.portal.test', color: '#1565c0' },
+    { fullName: 'Bluepeak Logistics', email: 'hello@bluepeak-logistics.portal.test', color: '#00838f' },
+    { fullName: 'Cedarwood Health', email: 'hello@cedarwood-health.portal.test', color: '#2e7d32' },
+    { fullName: 'Lumen Robotics', email: 'hello@lumen-robotics.portal.test', color: '#6a1b9a' },
+    { fullName: 'Harborview Finance', email: 'hello@harborview-finance.portal.test', color: '#ef6c00' },
+    { fullName: 'Summit Ridge Energy', email: 'hello@summit-ridge-energy.portal.test', color: '#c62828' }
 ];
 
 const JOBS = [
@@ -100,16 +100,16 @@ async function main() {
 
     const summary = { users: { created: 0, updated: 0 }, companies: { created: 0, existing: 0 }, jobs: { created: 0, existing: 0 } };
 
-    // Demo logins: password is (re)set on every run so the printed logins always work.
-    const demoHash = await bcrypt.hash(DEMO_PASSWORD, 10);
-    const demoUsers = [
-        { fullName: 'Demo Admin', email: 'admin@demo.test', type: 'admin' },
-        { fullName: 'Demo Employee', email: 'employee@demo.test', type: 'employee' }
+    // Sample logins: password is (re)set on every run so the printed logins always work.
+    const sampleHash = await bcrypt.hash(SAMPLE_PASSWORD, 10);
+    const sampleUsers = [
+        { fullName: 'Sample Admin', email: 'admin@portal.test', type: 'admin' },
+        { fullName: 'Sample Employee', email: 'employee@portal.test', type: 'employee' }
     ];
-    for (const u of demoUsers) {
+    for (const u of sampleUsers) {
         const res = await User.updateOne(
             { email: u.email },
-            { $set: { fullName: u.fullName, type: u.type, password: demoHash } },
+            { $set: { fullName: u.fullName, type: u.type, password: sampleHash } },
             { upsert: true }
         );
         res.upsertedCount ? summary.users.created++ : summary.users.updated++;
@@ -141,13 +141,13 @@ async function main() {
     }
 
     console.log('\nSeed summary');
-    console.log(`  Demo users:         ${summary.users.created} created, ${summary.users.updated} already existed (password reset)`);
+    console.log(`  Sample users:       ${summary.users.created} created, ${summary.users.updated} already existed (password reset)`);
     console.log(`  Partner companies:  ${summary.companies.created} created, ${summary.companies.existing} already existed`);
     console.log(`  Jobs:               ${summary.jobs.created} created, ${summary.jobs.existing} already existed`);
     console.log(`  Placeholder images: written to uploads/images (${COMPANIES.length} files)`);
-    console.log('\nDemo logins (local development only)');
-    console.log(`  Admin:    admin@demo.test     / ${DEMO_PASSWORD}`);
-    console.log(`  Employee: employee@demo.test  / ${DEMO_PASSWORD}`);
+    console.log('\nSample logins (local development only)');
+    console.log(`  Admin:    admin@portal.test     / ${SAMPLE_PASSWORD}`);
+    console.log(`  Employee: employee@portal.test  / ${SAMPLE_PASSWORD}`);
 
     await mongoose.disconnect();
 }

@@ -55,7 +55,7 @@ const STEPS = {
   employee: [
     ['Log in', 'Sign in with your employee account, or register one from the login page.'],
     ['Find a job', 'Search jobs by title or company, or browse the companies that are hiring.'],
-    ['Apply', 'Press Apply on a job. The demo shows a confirmation message but does not store applications.'],
+    ['Apply', 'Press Apply on a job. It shows a confirmation message, but applications are not stored.'],
   ],
   guest: [
     ['Create an account', 'Register with your name, email and a strong password. New accounts are employees.'],
