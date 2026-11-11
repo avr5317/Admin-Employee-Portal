@@ -7,7 +7,7 @@ const upload = require('../middleware/upload');
 // User routes
 router.post('/create', guardAdminCreation, userController.createUser);
 router.post('/register', userController.registerUser);
-router.get('/getAll', requireAuth, userController.getAllUsers);
+router.get('/getAll', requireAdmin, userController.getAllUsers);
 router.put('/edit', requireAdmin, userController.updateUser);
 router.delete('/delete', requireAdmin, userController.deleteUser);
 router.get('/users', requireAdmin, userController.getAllUsers); 

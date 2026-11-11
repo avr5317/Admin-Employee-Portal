@@ -100,6 +100,8 @@ async function main() {
 
     const summary = { users: { created: 0, updated: 0 }, companies: { created: 0, existing: 0 }, jobs: { created: 0, existing: 0 } };
 
+    // The seed script is the ONLY way to create the first admin: POST /user/create no
+    // longer allows anonymous admin creation, and POST /user/register only makes employees.
     // Sample logins: password is (re)set on every run so the printed logins always work.
     const sampleHash = await bcrypt.hash(SAMPLE_PASSWORD, 10);
     const sampleUsers = [

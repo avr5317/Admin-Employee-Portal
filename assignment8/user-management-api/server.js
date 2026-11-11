@@ -9,13 +9,18 @@ const cors = require('cors');
 // 2. Load environment variables
 dotenv.config();
 
+// Refuse to start with a missing, short or placeholder JWT_SECRET
+const { assertJwtSecret } = require('./config/jwt');
+assertJwtSecret();
+
 // 3. Initialize Express app
 const app = express();
 
 // 4. Middleware setup - CORS MUST COME BEFORE ROUTES
+// Allowed browser origin comes from CLIENT_ORIGIN (default: the local Vite dev server).
+// The app sends a Bearer header, not cookies, so credentials are not enabled.
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));

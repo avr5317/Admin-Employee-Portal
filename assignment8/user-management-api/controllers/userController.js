@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { JWT_ALGORITHM } = require('../config/jwt');
 const path = require('path');
 const fs = require('fs');
 
@@ -357,7 +358,7 @@ exports.loginUser = async (req, res) => {
         const token = jwt.sign(
             { id: user._id, email: user.email, type: user.type },
             process.env.JWT_SECRET,
-            { expiresIn: '1d' }
+            { algorithm: JWT_ALGORITHM, expiresIn: '1d' }
         );
 
         // Success – send back basic user info including type for role-based routing
