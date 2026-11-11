@@ -42,7 +42,7 @@ const HERO = {
   },
   guest: {
     title: 'A simple portal for jobs and the people who post them',
-    text: 'Admins post and manage jobs, employees browse and apply. Log in to get started, or create an employee account.',
+    text: 'Admins post and manage jobs, employees browse them and can search for each one on LinkedIn. Log in to get started, or create an employee account.',
   },
 };
 
@@ -55,7 +55,7 @@ const STEPS = {
   employee: [
     ['Log in', 'Sign in with your employee account, or register one from the login page.'],
     ['Find a job', 'Search jobs by title or company, or browse the companies that are hiring.'],
-    ['Apply', 'Press Apply on a job. It shows a confirmation message, but applications are not stored.'],
+    ['Apply', 'Press Apply on a job to open a LinkedIn job search for its title and company in a new tab. The app does not track applications.'],
   ],
   guest: [
     ['Create an account', 'Register with your name, email and a strong password. New accounts are employees.'],

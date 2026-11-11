@@ -35,7 +35,7 @@ const ADMIN_CAN = [
 
 const EMPLOYEE_CAN = [
   'Browse jobs and search them by title or company',
-  'Press Apply on a job (it shows a message only)',
+  'Press Apply on a job to open a LinkedIn job search for its title and company in a new tab',
   'See which companies are hiring and how many roles each has open',
   'Register their own employee account from the sign-up page',
 ];
@@ -54,7 +54,7 @@ const SECURITY = [
 
 const LIMITATIONS = [
   'The login token is stored in localStorage, so a script injected into the page could read it.',
-  'Apply only shows a message. Nothing is saved or sent.',
+  'Apply opens a LinkedIn job search for the title and company in a new tab. It is not a link to a specific posting, and the app does not track applications.',
   'There are no refresh tokens or rate limiting.',
   'There are no automated tests.',
 ];
@@ -78,7 +78,7 @@ const FAQ = [
   ],
   [
     'What does the Apply button do?',
-    'It shows a confirmation message and nothing else. No application is saved, and nothing is sent to an employer.',
+    'It opens a LinkedIn job search for the job title and company in a new tab. The app does not track applications, and the search may not show this exact job, because the jobs here are entered by admins and are not pulled from LinkedIn.',
   ],
   [
     'How long do I stay logged in?',
@@ -136,7 +136,7 @@ function About() {
         </Typography>
         <Typography color="text.secondary">
           Job Portal is a full-stack web app for two kinds of people. Admins post and manage jobs.
-          Employees browse the jobs and apply. It is a portfolio project, built to practise React,
+          Employees browse the jobs and can search for each one on LinkedIn. It is a portfolio project, built to practise React,
           Redux, role-based access and a secured REST API. It is not a live hiring service.
         </Typography>
       </Paper>

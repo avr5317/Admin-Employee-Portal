@@ -26,6 +26,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import AddIcon from '@mui/icons-material/Add';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { fetchJobs, deleteJob } from '../store/slices/jobsSlice';
@@ -33,6 +34,7 @@ import useLoadData from '../hooks/useLoadData';
 import Page from '../components/Page';
 import Toast from '../components/Toast';
 import { avatarColor, formatSalary, initialsOf } from '../utils/format';
+import { buildLinkedInJobSearchUrl } from '../utils/linkedin';
 
 const JOBS_PER_PAGE = 6;
 
@@ -90,13 +92,6 @@ function JobListings() {
     setCurrentPage(value);
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-  };
-
-  const handleApply = (job) => {
-    showToast(
-      `Thanks for your interest in ${job.jobTitle} at ${job.companyName}. Applications are not stored.`,
-      'info'
-    );
   };
 
   const confirmDelete = async () => {
@@ -266,7 +261,15 @@ function JobListings() {
                         Delete
                       </Button>
                     ) : (
-                      <Button fullWidth variant="outlined" onClick={() => handleApply(job)}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        href={buildLinkedInJobSearchUrl(job.jobTitle, job.companyName)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        endIcon={<OpenInNewIcon aria-hidden="true" />}
+                        aria-label={`Apply to ${job.jobTitle} at ${job.companyName} on LinkedIn (opens in a new tab)`}
+                      >
                         Apply
                       </Button>
                     )}

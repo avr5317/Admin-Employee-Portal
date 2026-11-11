@@ -429,7 +429,7 @@ A missing or invalid/expired token returns `401`; a logged-in non-admin on an ad
 ### Employee Flow
 1. **Login** as employee → Redirected to `/` (Home)
 2. **Browse Jobs** - Navigate to `/jobs`, see listings with pagination
-3. **Apply to Jobs** - Click "Apply" button (shows a message only; nothing is saved)
+3. **Apply to Jobs** - Click "Apply"; it opens a LinkedIn job search for the title and company in a new tab. The app does not track applications
 4. **View Companies** - See the companies that have posted jobs, with their open roles
 5. **Navigation** - Access About, Contact pages
 6. **Logout** - Return to login page
@@ -529,7 +529,7 @@ The layouts use Material UI breakpoints (the job and company grids, a stacked Co
 - [ ] Can navigate to `/jobs`
 - [ ] Jobs display in card format
 - [ ] Pagination works (if >6 jobs)
-- [ ] Apply button shows confirmation
+- [ ] Apply button opens a LinkedIn job search in a new tab
 - [ ] Cannot access admin routes (auto-redirects)
 - [ ] Can access: Home, About, Companies, Contact
 - [ ] Logout works correctly
@@ -549,7 +549,7 @@ The layouts use Material UI breakpoints (the job and company grids, a stacked Co
 - No refresh tokens: when the 1-day token expires, the user has to log in again
 - No rate limiting on any endpoint, including login
 - `POST /user/uploadImage` lets any logged-in user set an image for any email address
-- Apply button only shows a message (not connected to an actual application system)
+- Apply opens a LinkedIn job search for the title and company in a new tab. It is not a link to a specific posting (the jobs in this app are not LinkedIn listings, so results may not match), and the app does not track applications
 - The Contact form does not send messages
 - No automated tests
 - The error boundary catches render and lazy-load errors only, not errors in event handlers or async code
