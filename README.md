@@ -2,6 +2,7 @@
 
 A full-stack job portal application with role-based authentication and Redux state management. Admins can manage jobs and view users, while employees can browse available positions.
 
+<img width="1470" height="835" alt="image" src="https://github.com/user-attachments/assets/5ef35c43-cbe4-4bfb-bb4f-d00475bccf72" />
 
 
 ## 📝 Assignment Overview
