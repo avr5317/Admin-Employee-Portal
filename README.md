@@ -4,7 +4,7 @@ A full-stack job portal application with role-based authentication and Redux sta
 
 <img width="1178" height="827" alt="image" src="https://github.com/user-attachments/assets/f7d361e4-bc26-4f14-bc00-681a7db25789" />
 
-<img width="1121" height="835" alt="image" src="https://github.com/user-attachments/assets/27614e9d-5416-4f9b-a1cd-a8d1d4a95fba" />
+
 
 
 ## 📝 Assignment Overview
@@ -63,6 +63,7 @@ This assignment enhances a job portal application by implementing:
 
 ---
 
+
 ### ✅ Employee Portal Functionality
 
 #### 1. Role-Based Routing
@@ -80,6 +81,7 @@ This assignment enhances a job portal application by implementing:
 - **Location:** `pages/JobListings.jsx`
 
 ---
+<img width="1121" height="835" alt="image" src="https://github.com/user-attachments/assets/27614e9d-5416-4f9b-a1cd-a8d1d4a95fba" />
 
 ### ✅ Key Requirements
 
